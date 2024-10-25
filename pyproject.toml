@@ -1,0 +1,26 @@
+[project]
+name = "bvh-tools"
+version = "0.0.1"
+authors = [
+    {name = "Obscurestar"},
+]
+dependencies = [
+    "build", "setuptools", "wheel", "glm", "math", "argparse", "matplotlib", "mpl_toolkits", "pyopengl"
+]
+description = "A collection of tools for tinkering with BVH motion capture files."
+readme = "README.md"
+
+[tool.setuptools.packages.find]
+where=['.']
+
+[tool.setuptools]
+package-dir={''='.'}
+
+[tool.setuptools_scm]
+package-dir={''='.'}
+write_to = "fingerprint_engine/version.py"
+write_to_template = 'VERSION = "{version}"'
+
+[build-system]
+requires = ["setuptools", "build", "wheel"]
+build-backend = "setuptools.build_meta"
