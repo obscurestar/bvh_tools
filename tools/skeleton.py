@@ -23,7 +23,7 @@ class Joint:
 
     def fix_end_position( self ):
         '''The end position for each joint can be created from
-            either explicitly with an ENDSITE in the hierarchy 
+            either explicitly with an ENDSITE in the hierarchy
             definition or as the centroid of all its children.'''
 
         if self.end_position is None:
@@ -41,10 +41,10 @@ class Joint:
             child.fix_end_position( )
 
     def init_world_position( self ):
-        '''The hierarchy is initially generated as parent relative positions in the 
+        '''The hierarchy is initially generated as parent relative positions in the
            world relative rotational frame.'''
 
-        if self.parent is None: 
+        if self.parent is None:
             self.w_position = glm.vec3( 0, 0, 0 )
         else:
             self.w_position = self.parent.w_position + self.position
@@ -89,7 +89,7 @@ class Skeleton:
         return self.joints[ self.root_name ]
 
     def fix_end_positions( self ):
-        '''BVH spec is a bit nebulous on where the end of a bone is so 
+        '''BVH spec is a bit nebulous on where the end of a bone is so
            we'll make some choices'''
         self.get_root().fix_end_position()
 
