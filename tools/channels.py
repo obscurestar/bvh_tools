@@ -1,6 +1,8 @@
 '''Channels are the individual factors of X Y and Z for each of rotation,
     scale, and position'''
 
+#TODO move this class into bvh since nothing else uses it.
+
 class Channels:
     '''Which channels are active for a given joint
        this has been abstracted out of joints to keep them
