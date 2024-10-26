@@ -12,9 +12,7 @@ import sys
 import argparse
 import copy
 from tools.bvh import BVH
-from tools.skeleton import Skeleton
 from tools.glplot import Plot
-import tools.putils as putils
 
 def main(args):
     '''Plot BVH files and animate them'''
@@ -33,7 +31,7 @@ def main(args):
     args = parser.parse_args()
 
     bvh = BVH( args.bvh, args.max_depth )
-    
+
     skel = copy.deepcopy(bvh.skeleton)
     skel.set_unit_scale_factor()
     plot = Plot( skel, args.bvh )

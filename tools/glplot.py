@@ -1,13 +1,12 @@
 '''An OpenGL plotting tool for a skeleton'''
+import sys
+from platform import system as which_os
 import glm
-import atexit
 from OpenGL import GL
 from OpenGL.GLU import gluLookAt
 from OpenGL import GLUT
-from platform import system as which_os
 
 from tools.skeleton import Skeleton
-from tools import putils
 
 class Window():
     '''A trivial class to contain all the window creation stuff'''
@@ -92,14 +91,14 @@ class Plot():
             self.animating = not self.animating
             self.frame = 0
 
-        if key == 27 or key == 3:  #Escape key or ^C terminate
+        if key in [3, 27]:  #Escape key or ^C terminate
             #Apparently not implemented on mac.  You must apple-quit
             if which_os() == 'Darwin':
                 print ("Weirdly not supported, use apple-Q to quit.")
             else:
                 GLUT.glutDestroyWindow(self.window.window)
                 GLUT.glutLeaveMainLoop()
-                exit(0)
+                sys.exit(0)
 
         GLUT.glutPostRedisplay()
 
@@ -158,12 +157,12 @@ class Plot():
         scaled_vec = vec / self.skeleton.scale_factor
         GL.glVertex3f( scaled_vec[0], scaled_vec[1], scaled_vec[2] )
 
-    def update_frame( self, num ):
+    def update_frame( self, _ ):
         '''Trivial function to update the frame number'''
 
         self.frame += 1
-        GLUT.glutPostRedisplay();
-        GLUT.glutTimerFunc(self.skeleton.frame_rate, self.update_frame, 1);
+        GLUT.glutPostRedisplay()
+        GLUT.glutTimerFunc(self.skeleton.frame_rate, self.update_frame, 1)
 
     def update_bone( self, joint, rotation  ):
         '''Updates the rotation/position/scale for an individual bone'''
@@ -185,7 +184,7 @@ class Plot():
 
     def update_bones( self ):
         '''When in animating mode, uses the time delta from the last frame and
-           the framerate to determine which frame to display next, then 
+           the framerate to determine which frame to display next, then
            recursively updates the skeleton with the motion data.'''
 
         if self.animating:

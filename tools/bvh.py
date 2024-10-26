@@ -1,7 +1,7 @@
 '''A simple library for parsing BVH files.'''
 
-import glm
 import copy
+import glm
 from tools import putils
 from tools.channels import Channels
 from tools.skeleton import KeyFrame, Joint, Skeleton
@@ -62,13 +62,11 @@ class BVH:
             elif tag == '}':
                 if paren_count != 1:
                     raise Exception( f'Paren count mismatch in end site for {joint.name}' )
-                    return False
                 return True
             else:
                 raise Exception( f'Unrecognized {tag} in endsite for {joint.name}' )
             valid, tag, fields = self._read_hierarchy_line( fptr )
         raise Exception( f'Unexpected EOF searching for endsite in {joint.name}' )
-        return False
 
     def _parse_joint( self, name, parent, fptr  ):
         '''Parse a joint, recursing into children as needed'''
@@ -109,7 +107,6 @@ class BVH:
                 return True
             valid, tag, fields = self._read_hierarchy_line( fptr )
         raise Exception( f'Unexpected EOF while reading {name}' )
-        return False
 
     def _parse_hierarchy( self, fptr ):
         '''In the hierarchy portion of the file, read until

@@ -20,6 +20,55 @@ def vec_to_str(vec):
     '''Trash debug function.  Remove me'''
     return str("( %.2f, %.2f, %.2f )" % (vec[0], vec[1], vec[2]))
 
+def compare_vecs( vec1, vec2 ):
+    '''Given two vectors, verify every item matches whether simple list
+       or glm.vec3.  Also returns false if lengths don't match.  Herein,
+       match is defined as 'close enough' since we're dealing with a loss
+       of precision in floats'''
+
+    len1 = len(vec1)
+    len2 = len(vec2)
+
+    if isinstance(vec1, glm.vec3):
+        len1 = 3
+    if isinstance(vec2, glm.vec3):
+        len2 = 3
+
+    #Mismatched array lengths
+    if len1 != len2:
+        return False
+
+    #Empty v empty is ok!
+    if len1 == 0:
+        return True
+
+    for i in range(0, len1):
+        if abs( float(vec1[i]) - float(vec2[i]) ) > 0.0001:
+            return False
+
+    return True
+
+def make_up_vec(up_axis):
+    '''Passed x,y, or z, returns identity vector for the up axis.
+        returns None of not a valid axis'''
+
+    up_str = up_axis.lower()
+    if up_str == 'x':
+        return glm.vec3( 1, 0, 0 )
+    if up_str == 'y':
+        return glm.vec3( 0, 1, 0 )
+    if up_str == 'z':
+        return glm.vec3( 0, 0, 1 )
+    return None
+
+def quat_to_euler(quat):
+    '''Returns as radians'''
+    return glm.eulerAngles(glm.normalize(quat))
+
+def rotate_vector(vec, quat):
+    '''Rotate vector by a quaternion.  Assumes glm rot and quat'''
+    return vec * quat
+
 def shortest_arc(point_a, point_b):
     '''Given the vectors a and b return a quaternion representing the shortest arc between'''
 
@@ -53,19 +102,6 @@ def shortest_arc(point_a, point_b):
                 result = glm.quat( 0.0, 1.0, 0.0, 0.0 )
     return result
 
-def make_up_vec(up_axis):
-    '''Passed x,y, or z, returns identity vector for the up axis.
-        returns None of not a valid axis'''
-
-    up_str = up_axis.lower()
-    if up_str == 'x':
-        return glm.vec3( 1, 0, 0 )
-    if up_str == 'y':
-        return glm.vec3( 0, 1, 0 )
-    if up_str == 'z':
-        return glm.vec3( 0, 0, 1 )
-    return None
-
 def dir_to_quat(dir_vec, up_str):
     '''Passed a vec3 direction and a character x,y, or z to designate up axis
         Returns quaternion representing angle in direction of.'''
@@ -74,18 +110,9 @@ def dir_to_quat(dir_vec, up_str):
     mat = glm.lookAt(origin, glm.normalize(dir_vec), make_up_vec(up_str))
     return glm.quat(mat)
 
-def quat_to_euler(quat):
-    '''Returns as radians'''
-    return glm.eulerAngles(quat)
-
 def magnitude(vec):
     '''Returns magnitude of a vector'''
     return glm.length(glm.vec3(vec))
-
-def rotate_vector(vec, quat):
-    '''Rotate vector by a quaternion.  Assumes glm rot and quat'''
-    return vec * quat
-
 
 def distance_3d(vec1, vec2):
     '''vec1 and vec2 are presumed to be points, get direction
