@@ -8,41 +8,11 @@ import pytest
 
 from tools import putils
 from tools.skeleton import Joint
+from tools.skeleton import Skeleton
 
-@pytest.fixture(scope='function')
-def joint_setup(request):
-    '''Set up a dummy joint hierarchy for testing.  This will have a structure of
-        root
-            child1
-                grandchild
-            child2
-    '''
+from tests.tools.fixtures import joint_setup, skeleton_setup
 
-    #Setup the root joint
-    root = Joint( 'root', None )
-    root.position = glm.vec3( 1.0, 0, 0 )
-
-    #Give the root a child
-    child1 = Joint ( 'child1', root )
-    child1.position = glm.vec3( 1.0, 0, 0 )
-    root.children.append( child1 )
-
-    #Give the child a sibling
-    child2 = Joint ( 'child2', root )
-    child2.position = glm.vec3( 0.5 , 0, 0 )
-    root.children.append( child2 )
-
-    #Give the first child a child of its own
-    gchild = Joint ( 'grandchild', child1 )
-    gchild.position = glm.vec3( 0, 1.0, 0 )
-    child1.children.append( gchild )
-
-    #def joint_teardown():
-    #   pass
-    #request.addfinalizer(joint_teardown)
-
-    return root
-
+#Tests related to the Joints class
 def test_joint_setup(joint_setup):
     '''Make sure our fixture works as a smoke test.'''
     root = joint_setup
@@ -82,3 +52,24 @@ def test_compute_unit_scale(joint_setup):
     root = joint_setup
     assert root.children[1].compute_unit_scale() == 0.5
     assert root.compute_unit_scale() == 3.0
+
+#Tests related to the Skeleton class
+def test_skeleton(skeleton_setup):
+    '''Most of the skeleton class is just a wrapper to the Joints class
+       with a bit of decorator data at the toplevel, but in particular,
+       let's make sure that the root gets set up and the joint dictionary 
+       manipulates the same instance that the hierarchial joint structure does.'''
+
+    skel = skeleton_setup
+
+    #Test getting the root.
+    root = skel.get_root()
+    assert isinstance( root, Joint )
+
+    #Verify the associations.
+    child0 = root.children[0]   #Get the first child of root
+
+    assert isinstance( child0, Joint )
+    assert child0 != root       #Sanity check since these are of same type
+    assert child0 == skel.joints[child0.alias]  #Look up child in skel by alias
+
