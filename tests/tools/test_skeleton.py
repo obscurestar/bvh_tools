@@ -7,8 +7,7 @@ import glm
 import pytest
 
 from tools import putils
-from tools.skeleton import Joint
-from tools.skeleton import Skeleton
+from tools.skeleton import Joint, Skeleton
 
 from tests.tools.fixtures import joint_setup, skeleton_setup
 

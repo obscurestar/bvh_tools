@@ -205,8 +205,6 @@ class BVH:
                                                         channels,
                                                         1.0 )
 
-                #TODO figure out what stupid python thing requires a copy
-
                 channel.joint.frames.append( copy.deepcopy(frame) )
 
             channels = self._read_motion_line( fptr )
