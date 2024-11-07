@@ -5,7 +5,7 @@ authors = [
     {name = "Obscurestar"},
 ]
 dependencies = [
-    "build", "setuptools", "wheel", "glm", "math", "argparse", "matplotlib", "mpl_toolkits", "pyopengl"
+    "build", "setuptools", "wheel", "glm", "math", "argparse", "matplotlib", "mpl_toolkits", "pyopengl", "tcl-tk", "python-tk@3.10", "pyopengltk"
 ]
 description = "A collection of tools for tinkering with BVH motion capture files."
 readme = "README.md"

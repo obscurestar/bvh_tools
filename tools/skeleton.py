@@ -1,5 +1,6 @@
 '''Skeleton and related classes'''
 
+import copy
 import glm
 
 class KeyFrame:
@@ -19,7 +20,20 @@ class Joint:
         self.w_position = glm.vec3()
         self.end_position = None
         self.frames = []
+        self.resting = None #Resting pose is a single Keyframe
         self.children = []
+
+    def extract_resting_pose( self ):
+        '''Convert the 0th frame to a resting pose.'''
+
+        if self.resting is not None:
+            #Prevent accidental double use.
+            raise Exception('Resting frame extraction failed.  Resting frame already present.')
+
+        self.resting = copy.deepcopy(self.frames[0])
+        self.frames = self.frames[1:]
+        for child in self.children:
+            child.extract_resting_pose()
 
     def fix_end_position( self ):
         '''The end position for each joint can be created from
@@ -81,12 +95,19 @@ class Skeleton:
         self.num_frames = 0
         self.frame_rate = 33
         self.scale_factor = 1.0
+        self.has_resting = False
 
     def get_root( self ):
         '''Returns a pointer to the root joint'''
         if self.root_name is None or self.root_name not in self.joints:
             raise Exception( 'No root found' )
         return self.joints[ self.root_name ]
+
+    def extract_resting_pose( self ):
+        '''Sets the has resting flag and tells the joints to 
+           convert their 0th frame to a resting pose.'''
+        self.has_resting = True
+        self.get_root().extract_resting_pose()
 
     def fix_end_positions( self ):
         '''BVH spec is a bit nebulous on where the end of a bone is so
