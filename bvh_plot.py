@@ -23,10 +23,6 @@ def main(args):
                         type=int,
                         default=None,
                         help='Max depth of child joints to load.' )
-    parser.add_argument( '-z','--zero_frame', dest='zero_frame',
-                         default=False,
-                         action='store_true',
-                         help='Use the zero frame as resting pose')
 
     args = parser.parse_args()
 
