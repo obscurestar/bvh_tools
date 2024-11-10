@@ -235,8 +235,8 @@ class BVH:
                     num_frames_read =  self._parse_motion( fptr )
 
                     if self.skeleton.num_frames != num_frames_read:
-                        if self.skeleton.num_frames+1 = num_frames_read:
-                            print("Resting pose detected."
+                        if self.skeleton.num_frames+1 == num_frames_read:
+                            print("Resting pose detected.")
                             self.skeleton.extract_resting_pose()
                         else:
                             raise Exception(f'Expected {self.skeleton.num_frames} got {num_frames_read}')
