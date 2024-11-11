@@ -6,9 +6,9 @@ import glm
 class KeyFrame:
     '''Keyframe info for an individual joint'''
     def __init__( self ):
-        self.position = []
-        self.rotation = []
-        self.scale = []
+        self.position = None
+        self.rotation = None
+        self.scale = None
 
 class Joint:
     '''A single joint in a skeleton'''

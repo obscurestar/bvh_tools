@@ -11,6 +11,7 @@ else done.'''
 import sys
 import argparse
 import copy
+import faulthandler
 from tools.bvh import BVH
 from tools.glplot import Plot
 
@@ -34,4 +35,5 @@ def main(args):
     plot.activate()
 
 if __name__ == "__main__":
+    faulthandler.enable()
     main( sys.argv )

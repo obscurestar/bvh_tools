@@ -157,7 +157,9 @@ class BVH:
     def _extract_vector( indicies, data, base ):
         '''Extract indicies from data and order as XYZ in a glm.vec3'''
 
-        vec = glm.vec3( base, base, base )
+        #Converted this to a simple list because glm.vec was causing 
+        #Segfault in deepcopy.  Looks like it may be a known issue.
+        vec = [ base, base, base ]
 
         for key,index in indicies.items():
             if key == 'X':
@@ -166,6 +168,8 @@ class BVH:
                 vec[1] = data[index]
             if key == 'Z':
                 vec[2] = data[index]
+
+        return vec
 
     @staticmethod
     def _extract_rotation( indicies, data ):
