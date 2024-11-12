@@ -54,7 +54,6 @@ class Plot():
         self.scale = 1.0
         self.animating = False
         self.frame = 0
-        self.setup_resting()
 
     def reshape(self, w, h):
         '''Callback function for handling reshape from glut'''
@@ -126,25 +125,6 @@ class Plot():
 
         GL.glFlush()
 
-    def recurse_resting( self, joint, rotation  ):
-        '''A resting pose was used.  Unknot the avatar.'''
-
-        child_rot = glm.conjugate(joint.resting.rotation) * rotation
-        
-        if joint.parent is not None:
-            joint.position = joint.position * rotation
-
-        for child in joint.children:
-            self.update_resting( child, child_rot )
-
-    def setup_resting(self):
-        '''If the skeleton has a resting pose, we need to apply it to
-           the skeleton so that it doesn't have its head up its butt.'''
-
-        if self.skeleton.has_resting:
-            rotation = glm.quat(glm.vec3(0,0,0))
-            self.recurse_resting( self.skeleton.get_root(), rotation)
-
     def activate(self):
         '''This function is called once the skeleton is populated with
            data to activate the OpenGL view.'''
@@ -183,20 +163,6 @@ class Plot():
         self.frame += 1
         GLUT.glutPostRedisplay()
         GLUT.glutTimerFunc(self.skeleton.frame_rate, self.update_frame, 1)
-
-    def update_resting( self, joint, rotation  ):
-        '''DEBUG just to test resting pos'''
-
-        child_rot = glm.conjugate(joint.resting.rotation) * rotation
-        
-        if joint.parent is not None:
-            joint.w_position = joint.parent.w_position + \
-                               joint.position * rotation
-        else:
-            joint.w_position = joint.position
-
-        for child in joint.children:
-            self.update_resting( child, child_rot )
 
     def update_bone( self, joint, rotation  ):
         '''Updates the rotation/position/scale for an individual bone'''

@@ -49,6 +49,7 @@ class BVH:
             self.read_file( filename )
             self.skeleton.fix_end_positions()
             self.skeleton.init_world_positions()
+            self.skeleton.handle_resting_pose()
 
     @staticmethod
     def _read_hierarchy_line( fptr ):
@@ -241,7 +242,7 @@ class BVH:
                     if self.skeleton.num_frames != num_frames_read:
                         if self.skeleton.num_frames+1 == num_frames_read:
                             print("Resting pose detected.")
-                            self.skeleton.extract_resting_pose()
+                            self.skeleton.has_resting = True
                         else:
                             raise Exception(f'Expected {self.skeleton.num_frames} got {num_frames_read}')
                 valid, tag, fields = self._read_hierarchy_line( fptr )

@@ -23,7 +23,7 @@ class Joint:
         self.resting = None #Resting pose is a single Keyframe
         self.children = []
 
-    def extract_resting_pose( self ):
+    def extract_resting_pose( self, rotation ):
         '''Convert the 0th frame to a resting pose.'''
 
         if self.resting is not None:
@@ -32,8 +32,16 @@ class Joint:
 
         self.resting = copy.deepcopy(self.frames[0])
         self.frames = self.frames[1:]
+
+        child_rot = glm.conjugate(self.resting.rotation) * rotation
+        if self.parent is not None:
+            self.w_position = self.parent.w_position + \
+                               self.position * rotation
+        else:
+            self.w_position = self.position
+
         for child in self.children:
-            child.extract_resting_pose()
+            child.extract_resting_pose( child_rot )
 
     def fix_end_position( self ):
         '''The end position for each joint can be created from
@@ -103,11 +111,13 @@ class Skeleton:
             raise Exception( 'No root found' )
         return self.joints[ self.root_name ]
 
-    def extract_resting_pose( self ):
+    def handle_resting_pose( self ):
         '''Sets the has resting flag and tells the joints to 
            convert their 0th frame to a resting pose.'''
-        self.has_resting = True
-        self.get_root().extract_resting_pose()
+
+        if self.has_resting:
+            rotation = glm.quat(glm.vec3(0,0,0))
+            self.get_root().extract_resting_pose( rotation )
 
     def fix_end_positions( self ):
         '''BVH spec is a bit nebulous on where the end of a bone is so
