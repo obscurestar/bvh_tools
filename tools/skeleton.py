@@ -5,25 +5,46 @@ import glm
 
 class KeyFrame:
     '''Keyframe info for an individual joint'''
+    position : glm.vec3
+    rotation : glm.vec3
+    scale : glm.vec3
     def __init__( self ):
         self.position = None
+        '''A glm.vec3 representing a change in joint position.'''
         self.rotation = None
+        '''A glm.quat representing a change in rotation of the joint.'''
         self.scale = None
+        '''A glm.vec3 representing a change in the scale of the joint'''
 
 class Joint:
     '''A single joint in a skeleton'''
+    name : str
+    alias : str
+    position : glm.vec3
+    w_position : glm.vec3
+    end_position : glm.vec3
     def __init__( self, name=None, parent=None ):
         self.name = name    #String
+        '''The name of the joint as read from the BVH file'''
         self.alias = name   #default same as name
+        '''A preferred name for the joint used for remapping.  Default is same as name'''
         self.parent = parent  #Pointer to another joint
+        '''A reference to the object of this joint's parent joint.  None if joint is root'''
         self.position = glm.vec3()
+        '''The joint's parent-relative position'''
         self.w_position = glm.vec3()
+        '''The joint's world position'''
         self.end_position = None
+        '''The end position for this joint. The average of this joint's children's
+            parent-relative position.  None if no children.'''
         self.frames = []
+        '''A list of keyframes for this joint.'''
         self.resting = None #Resting pose is a single Keyframe
+        '''Some skeletons have a resting pose in addition to the bind pose.'''
         self.children = []
+        '''A list of the child joints'''
 
-    def extract_resting_pose( self, rotation ):
+    def extract_resting_pose( self, rotation : glm.quat ):
         '''Convert the 0th frame to a resting pose.'''
 
         if self.resting is not None:
@@ -46,7 +67,8 @@ class Joint:
     def fix_end_position( self ):
         '''The end position for each joint can be created from
             either explicitly with an ENDSITE in the hierarchy
-            definition or as the centroid of all its children.'''
+            definition or as the centroid of all its children.
+        '''
 
         if self.end_position is None:
             if len(self.children) > 0:
@@ -74,7 +96,7 @@ class Joint:
         for child in self.children:
             child.init_world_position( )
 
-    def compute_unit_scale(self, mag_sum=0):
+    def compute_unit_scale(self, mag_sum : float=0) -> float:
         '''Recursive function for summing the magnitude of
            joint chains and returning the maximum magnitude
            of all branching possibilities.'''
@@ -99,11 +121,18 @@ class Skeleton:
 
     def __init__( self ):
         self.joints = {}        #Map of joint aliases to joint data.
+        '''A dict mapping of joint aliases to the joint data'''
         self.root_name = None
+        '''The name of the root joint'''
         self.num_frames = 0
+        '''Number of frames in the animation'''
         self.frame_rate = 33
+        '''Optimal minimum delay between displaying frames'''
         self.scale_factor = 1.0
+        '''Number used to convert avatar to Vetruvian Scale
+        (The largest sum of joint lengths from root an an end effector)'''
         self.has_resting = False
+        '''Set true if there is a resting pose in the skeleton.'''
 
     def get_root( self ):
         '''Returns a pointer to the root joint'''
@@ -112,7 +141,7 @@ class Skeleton:
         return self.joints[ self.root_name ]
 
     def handle_resting_pose( self ):
-        '''Sets the has resting flag and tells the joints to 
+        '''Sets the has resting flag and tells the joints to
            convert their 0th frame to a resting pose.'''
 
         if self.has_resting:

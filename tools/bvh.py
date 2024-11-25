@@ -1,22 +1,24 @@
 '''A simple library for parsing BVH files.'''
 
 import copy
+from typing import List
 import glm
 from tools import putils
 from tools.skeleton import KeyFrame, Joint, Skeleton
 
-class Channels:
+class _Channels:
     '''Which channels are active for a given joint
        this has been abstracted out of joints to keep them
        lighter as it's only used for parsing and then discarded.'''
-    def __init__(self, joint, line, offset):
+
+    def __init__(self, joint : Joint, line : str, offset : int):
         self.joint = joint
         self.rotation = {}
         self.position = {}
         self.scale = {}
         self._parse(line, offset)
 
-    def _parse(self, line, offset):
+    def _parse(self, line : str , offset : int):
         '''line is a small lie.  It is the line to parse but it is a list'''
         index = 0
         fields = [field.upper() for field in line[2:]]
@@ -37,10 +39,27 @@ class Channels:
 
 class BVH:
     '''BVH parser'''
-    def __init__( self, filename=None, max_depth=None, ignore_after=None ):
+    skeleton : Skeleton
+    max_depth : int
+    ignore_after_list : List[str] = ["List of joint names to exclude"]
+    channels: _Channels
+    channel_offset: int
+    depth: int
+
+    def __init__( self, filename:str=None, max_depth:int=None, ignore_after=None ):
+        '''Load a BVH file into memory.  Assumes that the file is a valid BVH format
+        and the program has appropriate permissions.
+        '''
+
         self.skeleton = Skeleton()
         self.max_depth = max_depth
+        '''max_depth [OPTIONAL] truncates the hierarchy counted as depth from root.
+           eg:  1 = only root, 2 = root and children, 3 = root and grandchildren, etc'''
         self.ignore_after_list = ignore_after
+        '''ignore_after [OPTIONAL] a whitespace delimited list of joint names to exclude.
+        eg:  "mLeftHand mRightHand" would preserve the left and right hand joints
+        but cut off all the fingers.'''
+
         self.channels = []
         self.channel_offset = 0 #A running counter of channels
         self.depth = -1
@@ -122,7 +141,7 @@ class BVH:
                                            float( fields[2] ),
                                            float( fields[3] ) )
             if tag == 'CHANNELS':
-                chan = Channels( joint, fields, self.channel_offset )
+                chan = _Channels( joint, fields, self.channel_offset )
                 self.channel_offset = self.channel_offset + int(fields[1])
                 self.channels.append( chan )
             if tag == 'JOINT':
@@ -158,7 +177,7 @@ class BVH:
     def _extract_vector( indicies, data, base ):
         '''Extract indicies from data and order as XYZ in a glm.vec3'''
 
-        #Converted this to a simple list because glm.vec was causing 
+        #Converted this to a simple list because glm.vec was causing
         #Segfault in deepcopy.  Looks like it may be a known issue.
         vec = [ base, base, base ]
 
@@ -216,7 +235,7 @@ class BVH:
             frame_no += 1
         return frame_no
 
-    def read_file( self, filename, max_depth=None, ignore_after_list=None ):
+    def read_file( self, filename:str, max_depth:int=None, ignore_after_list:List[str]=None ):
         '''Attempts to read the BVH file.  If max_depth is set,
            ignore joints below this depth.  If ignore_list is set,
            if a joint name matches one in the ignore_list, ignore

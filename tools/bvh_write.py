@@ -1,22 +1,21 @@
 '''A simple library for parsing BVH files.'''
 
-import copy
 import glm
 from tools import putils
-from tools.skeleton import KeyFrame, Joint, Skeleton
+from tools.skeleton import Joint, Skeleton
 
-def vec_to_str(vec):
+def _vec_to_str(vec):
     '''Turns a glm.vec3 into a string complaint with BVH format.
         assumes x y z order'''
-    return str("%.7f %.7f %.7f" % (vec[0], vec[1], vec[2]))
+    return f"{vec[0]:.7f} {vec[1]:.7f} {vec[2]:.7f}"
 
-def quat_to_str(quat):
+def _quat_to_str( quat : glm.quat ):
     '''Turns a glm.quat into a string complaint with BVH format.
         assumes x y z order and degrees'''
-    return vec_to_str( putils.degrees( putils.quat_to_euler(quat) ) )
+    return _vec_to_str( putils.degrees( putils.quat_to_euler(quat) ) )
 
-def write_joint( fptr, joint, rotation, indent=0):
-    '''Writes the joint data'''
+def _write_joint( fptr, joint:Joint, rotation:glm.vec3, indent:int=0):
+    '''Writes the joint data.  Presently only writes rotation data.'''
 
     is_root = False
     tag = 'JOINT'
@@ -36,7 +35,7 @@ def write_joint( fptr, joint, rotation, indent=0):
         child_rot = glm.conjugate(joint.resting.rotation) * rotation
         joint.position = joint.position * rotation
 
-    fptr.write(f'{tabs}OFFSET {vec_to_str(joint.position)}\n')
+    fptr.write(f'{tabs}OFFSET {_vec_to_str(joint.position)}\n')
     if is_root:
         fptr.write(f'{tabs}CHANNELS 6 Xposition Yposition Zposition Xrotation Yrotation Zrotation\n')
     else:
@@ -44,17 +43,17 @@ def write_joint( fptr, joint, rotation, indent=0):
 
     if len(joint.children) > 0:
         for child in joint.children:
-            write_joint( fptr, child, child_rot, c_indent )
+            _write_joint( fptr, child, child_rot, c_indent )
     else:
         fptr.write(f'{tabs}End Site\n{tabs}')
         fptr.write('{\n\t')
-        fptr.write(f'{tabs}OFFSET {vec_to_str(joint.end_position)}\n{tabs}')
+        fptr.write(f'{tabs}OFFSET {_vec_to_str(joint.end_position)}\n{tabs}')
         fptr.write('}\n')
 
     #Close up.
     fptr.write(p_tabs + '}\n')
-    
-def recurse_channels(joint, frame_no, fptr):
+
+def _recurse_channels(joint:Joint, frame_no:int, fptr):
     '''Recurse through joints, writing their rotation to the keyframe data'''
 
     rotation = joint.frames[frame_no].rotation
@@ -64,11 +63,11 @@ def recurse_channels(joint, frame_no, fptr):
         #rotation = glm.conjugate(joint.resting.rotation) * rotation
         rotation = joint.resting.rotation * rotation
 
-    fptr.write(f' {quat_to_str(rotation)}')
+    fptr.write(f' {_quat_to_str(rotation)}')
     for child in joint.children:
-        recurse_channels(child, frame_no, fptr)
+        _recurse_channels(child, frame_no, fptr)
 
-def bvh_write( skeleton, filename):
+def bvh_write( skeleton:Skeleton, filename:str):
     '''Writes a BVH file in a single format with no options.  Very basic.'''
 
     root = skeleton.get_root()
@@ -76,18 +75,17 @@ def bvh_write( skeleton, filename):
     with open( filename, 'w', encoding='utf-8' ) as fptr:
         fptr.write('HIERARCHY\n')
         rotation = glm.quat(glm.vec3(0,0,0))
-        write_joint( fptr, root, rotation )
+        _write_joint( fptr, root, rotation )
         fptr.write('MOTION\n')
 
         num_frames = skeleton.num_frames
         if skeleton.has_resting:
-            num_frames = num_frames - 1 
+            num_frames = num_frames - 1
         fptr.write(f'Frames: {num_frames}\n')
         fptr.write(f'Frame Time: {float(skeleton.frame_rate/1000.0)}\n')
 
         #Loop through frames
         for frame_no in range(1,len(root.frames)):
-            fptr.write(f'{vec_to_str(root.frames[frame_no].position)}')
-            recurse_channels(root, frame_no, fptr)
+            fptr.write(f'{_vec_to_str(root.frames[frame_no].position)}')
+            _recurse_channels(root, frame_no, fptr)
             fptr.write('\n')
-

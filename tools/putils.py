@@ -6,21 +6,22 @@ import math
 
 import glm
 
-def degrees(euler):
+def degrees(euler:glm.vec3) -> glm.vec3:
     '''Given a vector of 3 presumed floats representing radians,
-       return a glm.vec3 of degrees in'''
+       return a glm.vec3 of degrees'''
     return glm.vec3(math.degrees(euler[0]), math.degrees(euler[1]), math.degrees(euler[2]))
 
-def radians(euler):
+def radians(euler:glm.vec3) ->glm.vec3:
     '''Given a vector of 3 presumed floats representing degrees,
-       return a glm.vec3 of radians in'''
+       return a glm.vec3 of radians'''
     return glm.vec3(math.radians(euler[0]), math.radians(euler[1]), math.radians(euler[2]))
 
-def vec_to_str(vec):
-    '''Trash debug function.  Remove me'''
-    return str("( %.2f, %.2f, %.2f )" % (vec[0], vec[1], vec[2]))
+def vec_to_str(vec:glm.vec3) -> str:
+    '''A debug function for formatting list[float,float,float] or glm.vec3
+       as a string of the format: ( #.##, #.##, #.## )'''
+    return f"( {vec[0]:.2f}, {vec[1]:.2f}, {vec[2]:.2f} )"
 
-def compare_vecs( vec1, vec2 ):
+def compare_vecs( vec1:glm.vec3, vec2:glm.vec3 ) -> bool:
     '''Given two vectors, verify every item matches whether simple list
        or glm.vec3.  Also returns false if lengths don't match.  Herein,
        match is defined as 'close enough' since we're dealing with a loss
@@ -48,7 +49,7 @@ def compare_vecs( vec1, vec2 ):
 
     return True
 
-def make_up_vec(up_axis):
+def make_up_vec(up_axis : glm.vec3) -> glm.vec3:
     '''Passed x,y, or z, returns identity vector for the up axis.
         returns None of not a valid axis'''
 
@@ -61,15 +62,15 @@ def make_up_vec(up_axis):
         return glm.vec3( 0, 0, 1 )
     return None
 
-def quat_to_euler(quat):
-    '''Returns as radians'''
+def quat_to_euler(quat : glm.quat) -> glm.vec3:
+    '''Coverts a quaternion to an Euler in XYZ order.  Returns as radians'''
     return glm.eulerAngles(glm.normalize(quat))
 
-def rotate_vector(vec, quat):
+def rotate_vector(vec : glm.vec3, quat : glm.quat) -> glm.vec3:
     '''Rotate vector by a quaternion.  Assumes glm rot and quat'''
     return vec * quat
 
-def shortest_arc(point_a, point_b):
+def shortest_arc(point_a : glm.vec3, point_b : glm.vec3) -> glm.quat:
     '''Given the vectors a and b return a quaternion representing the shortest arc between'''
 
     result = glm.quat(1.0,0.0,0.0,0.0)
@@ -102,7 +103,7 @@ def shortest_arc(point_a, point_b):
                 result = glm.quat( 0.0, 1.0, 0.0, 0.0 )
     return result
 
-def dir_to_quat(dir_vec, up_str):
+def dir_to_quat(dir_vec : glm.vec3 , up_str : str) -> glm.quat:
     '''Passed a vec3 direction and a character x,y, or z to designate up axis
         Returns quaternion representing angle in direction of.'''
 
@@ -110,16 +111,16 @@ def dir_to_quat(dir_vec, up_str):
     mat = glm.lookAt(origin, glm.normalize(dir_vec), make_up_vec(up_str))
     return glm.quat(mat)
 
-def magnitude(vec):
+def magnitude(vec : glm.vec3) -> float:
     '''Returns magnitude of a vector'''
     return glm.length(glm.vec3(vec))
 
-def distance_3d(vec1, vec2):
+def distance_3d(vec1 : glm.vec3, vec2 : glm.vec3) -> float:
     '''vec1 and vec2 are presumed to be points, get direction
        from vec1 to vec2 and return the distance between them.'''
     return magnitude(vec1 - vec2)
 
-def clamp(num, lim):
+def clamp(num : float, lim : float) -> float:
     '''  Clamps number to +- the passed value.'''
 
     num = min(num, lim)
