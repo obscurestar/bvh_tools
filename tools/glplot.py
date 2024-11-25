@@ -49,7 +49,7 @@ class Plot():
             raise Exception('Skeleton is required and must be of type skeleton')
         self.skeleton = skeleton
         self.window = Window( name, window_pos, window_size )
-        self.rotate_y = 0.0
+        self.rotate_y = 180.0
         self.rotate_x = 0.0
         self.scale = 1.0
         self.animating = False
@@ -172,10 +172,15 @@ class Plot():
             return
 
         child_rot = joint.frames[self.frame].rotation * rotation
-
+        if self.skeleton.has_resting:
+            child_rot = glm.conjugate(joint.frames[self.frame].rotation) * rotation
+        
         if joint.parent is not None:
             joint.w_position = joint.parent.w_position + \
                                joint.position * glm.conjugate(rotation)
+            if self.skeleton.has_resting:
+                joint.w_position = joint.parent.w_position + \
+                                   joint.position * rotation
         else:
             joint.w_position = joint.position
 
@@ -199,14 +204,21 @@ class Plot():
         '''Recursive function to draw line strips from a joint to each of
            if children.'''
 
-        #TODO assigning joints colors would be cool.
+
+        #TODO assigning joints colors would be cool. Move joint color to skeleton.
         GL.glColor3f(1.0, 1.0, 1.0)
+        jname = joint.alias.upper()
+        if 'RIGHT' in jname or jname[0]=='R':
+            GL.glColor3f(1.0, 0.0, 0.0)
+        elif 'LEFT' in jname or jname[0]=='L':
+            GL.glColor3f(0.0, 0.0, 1.0)
 
         if joint.parent is not None:
             #Make a 2-vertex line segment
             GL.glBegin( GL.GL_LINE_STRIP )
-            self.add_vertex( joint.parent.w_position )
-            self.add_vertex( joint.w_position )
+            #Keep the root at the center of the screen.
+            self.add_vertex( joint.parent.w_position - self.skeleton.get_root().w_position )
+            self.add_vertex( joint.w_position - self.skeleton.get_root().w_position )
             GL.glEnd()
 
         #Recurse the children

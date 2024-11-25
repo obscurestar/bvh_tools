@@ -11,6 +11,7 @@ else done.'''
 import sys
 import argparse
 import copy
+import faulthandler
 from tools.bvh import BVH
 from tools.glplot import Plot
 
@@ -23,10 +24,6 @@ def main(args):
                         type=int,
                         default=None,
                         help='Max depth of child joints to load.' )
-    parser.add_argument( '-z','--zero_frame', dest='zero_frame',
-                         default=False,
-                         action='store_true',
-                         help='Use the zero frame as resting pose')
 
     args = parser.parse_args()
 
@@ -38,4 +35,5 @@ def main(args):
     plot.activate()
 
 if __name__ == "__main__":
+    faulthandler.enable()
     main( sys.argv )

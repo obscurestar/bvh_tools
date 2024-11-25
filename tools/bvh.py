@@ -3,8 +3,37 @@
 import copy
 import glm
 from tools import putils
-from tools.channels import Channels
 from tools.skeleton import KeyFrame, Joint, Skeleton
+
+class Channels:
+    '''Which channels are active for a given joint
+       this has been abstracted out of joints to keep them
+       lighter as it's only used for parsing and then discarded.'''
+    def __init__(self, joint, line, offset):
+        self.joint = joint
+        self.rotation = {}
+        self.position = {}
+        self.scale = {}
+        self._parse(line, offset)
+
+    def _parse(self, line, offset):
+        '''line is a small lie.  It is the line to parse but it is a list'''
+        index = 0
+        fields = [field.upper() for field in line[2:]]
+
+        for field in fields:
+            axis = field[0]
+            chan = field[1:]
+
+            if chan == 'ROTATION':
+                self.rotation[axis] = index + offset
+            elif chan == 'POSITION':
+                self.position[axis] = index + offset
+            elif chan == 'SCALE':
+                self.scale[axis] = index + offset
+            else:
+                raise Exception(f'Channel parsing: {chan} Ignored unrecognized token {field}')
+            index = index + 1
 
 class BVH:
     '''BVH parser'''
@@ -20,6 +49,7 @@ class BVH:
             self.read_file( filename )
             self.skeleton.fix_end_positions()
             self.skeleton.init_world_positions()
+            self.skeleton.handle_resting_pose()
 
     @staticmethod
     def _read_hierarchy_line( fptr ):
@@ -128,7 +158,9 @@ class BVH:
     def _extract_vector( indicies, data, base ):
         '''Extract indicies from data and order as XYZ in a glm.vec3'''
 
-        vec = glm.vec3( base, base, base )
+        #Converted this to a simple list because glm.vec was causing 
+        #Segfault in deepcopy.  Looks like it may be a known issue.
+        vec = [ base, base, base ]
 
         for key,index in indicies.items():
             if key == 'X':
@@ -137,6 +169,8 @@ class BVH:
                 vec[1] = data[index]
             if key == 'Z':
                 vec[2] = data[index]
+
+        return vec
 
     @staticmethod
     def _extract_rotation( indicies, data ):
@@ -176,8 +210,6 @@ class BVH:
                                                         channels,
                                                         1.0 )
 
-                #TODO figure out what stupid python thing requires a copy
-
                 channel.joint.frames.append( copy.deepcopy(frame) )
 
             channels = self._read_motion_line( fptr )
@@ -208,5 +240,9 @@ class BVH:
                     num_frames_read =  self._parse_motion( fptr )
 
                     if self.skeleton.num_frames != num_frames_read:
-                        raise Exception(f'Expected {self.skeleton.num_frames} got {num_frames_read}')
+                        if self.skeleton.num_frames+1 == num_frames_read:
+                            print("Resting pose detected.")
+                            self.skeleton.has_resting = True
+                        else:
+                            raise Exception(f'Expected {self.skeleton.num_frames} got {num_frames_read}')
                 valid, tag, fields = self._read_hierarchy_line( fptr )
